@@ -1,4 +1,4 @@
-import ijson
+import ijson # type: ignore
 
 import random
 
@@ -42,7 +42,7 @@ def random_question(category):
 
     global streak
 
-    selected_q=random.randint(0,0)
+    selected_q=random.randint(0,total)
     current_q=0
 
     with open("questions.json","r",encoding="utf-8") as f:
