@@ -17,6 +17,8 @@ class color:
 class style:
     ITALIC = "\033[3m"
     END = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 # with open("questions.json", "r") as f:
 #     # Stream items one by one from the top-level array
@@ -29,21 +31,57 @@ qset="math"
 
 total=0
 
-def format():
-    with open("questions.json","r",encoding="utf-8") as f:
-        for question in ijson.items(f,qset+".item"):
-            question = question["question"]
-            q: str = question["question"]
+def format(string):
 
-            prev_c = ""
-            i = 0
-            for c in q:
-                if c == "*" and q[i+1].isalnum():
-                    c[i] = style.ITALIC
-                if c == "*" and q[i-1].isalnum():
-                    c[i] = style.END
+    keywords=["less","greater","not","sum","only","area","equation","value"]
+            
+    newstring=""
+    i = 0
+    ending_dollar_sign=False
+    while i<len(string):
 
-# format() 
+        current_char=string[i]
+
+        try:
+            if current_char == "*" and string[i+1].isalnum():
+                current_char = style.ITALIC
+
+            if current_char == "*" and string[i-1]!=" ":
+                current_char = style.END
+
+            if current_char=="$":
+                if ending_dollar_sign:
+                    current_char=style.END
+                else:
+                    current_char=style.ITALIC
+                ending_dollar_sign=not ending_dollar_sign
+        finally: ""
+        
+        try:
+            for keyword in keywords:
+
+                if string[i:i+len(keyword)].lower()==keyword:
+                    current_char=color.UNDERLINE+current_char
+                if string[i-len(keyword):i].lower()==keyword:
+                    current_char=color.END+current_char
+        finally: ""
+
+        try:
+            if string[i:i+4]=="frac":
+                current_char=""
+                i+=3
+            if string[i:i+2]=="}{":
+                current_char="}/{"
+                i+=2
+        finally: ""
+    
+
+
+        newstring+=current_char
+
+        i+=1
+    
+    return newstring
 
 with open("questions.json","r",encoding="utf-8") as f:
     for question in ijson.items(f,qset+".item"):
@@ -65,13 +103,13 @@ def random_question(category):
             if(current_q==selected_q):
                 print()
 
-                print(f"\nQuestion {selected_q}: {question['question']['question']}")
+                print(f"\nQuestion {selected_q}: {format(question['question']['question'])}")
                 if streak>=3:
                     print(f"{color.YELLOW}{color.BOLD}You have a {color.RED}{streak}{color.YELLOW} answer streak!{color.END}")
-                print(f"\n{color.RED}A: {question['question']['choices']['A']}")
-                print(f"{color.BLUE}B: {question['question']['choices']['B']}")
-                print(f"{color.YELLOW}C: {question['question']['choices']['C']}")
-                print(f"{color.GREEN}D: {question['question']['choices']['D']}{color.END}")
+                print(f"\n{color.RED}A: {format(question['question']['choices']['A'])}")
+                print(f"{color.BLUE}B: {format(question['question']['choices']['B'])}")
+                print(f"{color.YELLOW}C: {format(question['question']['choices']['C'])}")
+                print(f"{color.GREEN}D: {format(question['question']['choices']['D'])}{color.END}")
 
                 user_answer=input("Your answer:")
                 
