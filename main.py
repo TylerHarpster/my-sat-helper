@@ -14,6 +14,10 @@ class color:
    UNDERLINE = '\033[4m'
    END = '\033[0m'
 
+class style:
+    ITALIC = "\033[3m"
+    END = '\033[0m'
+
 # with open("questions.json", "r") as f:
 #     # Stream items one by one from the top-level array
 #     for question in ijson.items(f, "math.item"):
@@ -21,28 +25,38 @@ class color:
 #         print(f"Domain: {question['domain']}")
 #         print(f"Question: {question['question']['question']}\n")
 
-qset="english"
+qset="math"
 
+total=0
 
-for i in range(2):
-    total=0
-
+def format():
     with open("questions.json","r",encoding="utf-8") as f:
-
         for question in ijson.items(f,qset+".item"):
-            total+=1
+            question = question["question"]
+            q: str = question["question"]
 
-    loop=True
-    print(total)
-    qset="math"
+            prev_c = ""
+            i = 0
+            for c in q:
+                if c == "*" and q[i+1].isalnum():
+                    c[i] = style.ITALIC
+                if c == "*" and q[i-1].isalnum():
+                    c[i] = style.END
+
+# format() 
+
+with open("questions.json","r",encoding="utf-8") as f:
+    for question in ijson.items(f,qset+".item"):
+        total+=1
 
 streak=0
+selected_q=0
 
 def random_question(category):
 
     global streak
 
-    selected_q=random.randint(0,total)
+    global selected_q
     current_q=0
 
     with open("questions.json","r",encoding="utf-8") as f:
@@ -82,5 +96,6 @@ def random_question(category):
 
 
 
-while loop:
+while True:
     random_question(qset)
+    selected_q+=1
