@@ -1,6 +1,7 @@
 import ijson # type: ignore
-
+import pyautogui
 import random
+import time
 
 class color:
    PURPLE = '\033[95m'
@@ -29,12 +30,22 @@ class style:
 
 qset="math"
 
+
+
+def focus(window_name):
+    vscode=pyautogui.getWindowsWithTitle(window_name)[0]
+    pyautogui.hotkey('win','d')
+    time.sleep(0.1)
+
+    vscode.restore()
+    vscode.activate()
+
 total=0
 
 def format(string):
 
     underline_keywords=["less","greater","not","sum","only","area","equation","value","value(s)","distributive property"]
-    replace_keywords=[["frac",""],["}{","}/{"]]
+    replace_keywords=[["frac",""],["}{","}/{"],["\\pi","π"]]
             
     newstring=""
     i = 0
@@ -89,13 +100,19 @@ with open("questions.json","r",encoding="utf-8") as f:
         total+=1
 
 streak=0
-selected_q=0
+time_budget=1
+spending_time=False
+time_using=0
+
 
 def random_question(category):
 
     global streak
+    global time_budget
+    global spending_time
+    global time_using
 
-    global selected_q
+    selected_q=random.randint(0,total)
     current_q=0
 
     with open("questions.json","r",encoding="utf-8") as f:
@@ -110,12 +127,42 @@ def random_question(category):
                 print(f"\n{color.RED}A: {format(question['question']['choices']['A'])}")
                 print(f"{color.BLUE}B: {format(question['question']['choices']['B'])}")
                 print(f"{color.YELLOW}C: {format(question['question']['choices']['C'])}")
-                print(f"{color.GREEN}D: {format(question['question']['choices']['D'])}{color.END}")
+                print(f"{color.GREEN}D: {format(question['question']['choices']['D'])}")
 
-                user_answer=input("Your answer:")
+
+                valid_answers=["a","b","c","d","quit"]
+
+                user_answer=""
+                valid_answer=False
+                while not valid_answer:
+                    user_answer=input("Your answer:")
+                    try:
+                        valid_answers.index(user_answer)
+                        valid_answer=True
+                    except ValueError:
+                        if user_answer=="viewtime":
+                            print(f"You have {time_budget} minutes available")
+                        elif user_answer[0:9]=="spendtime":
+
+                            try:
+                                user_answer=user_answer[10:len(user_answer)]
+                                user_answer=int(user_answer)
+                                if user_answer>time_budget:
+                                    print(color.RED+style.BOLD+"Not enough time!"+style.END)
+                                else:
+                                    time_budget-=user_answer
+                                    time_using=user_answer*60
+                                    spending_time=True
+                                    return 0
+                            except ValueError: 
+                                print(color.RED+style.BOLD+"Invalid parameter!"+style.END)
+                        else:
+                            print(color.RED+style.BOLD+"Invalid answer!"+style.END)
+
                 
                 if(user_answer=="quit"): 
                     quit()
+                
 
                 correct=False
                 correct_str=color.RED+color.BOLD+"Incorrect."+color.END
@@ -123,6 +170,10 @@ def random_question(category):
                     correct=True
                     correct_str=color.GREEN+color.BOLD+"Correct!"+color.END
                     streak+=1
+                    time_budget+=5
+                    if streak>5:
+                        time_budget+=(streak-5)
+
                     
                 
                 print(f"{correct_str} {format(question['question']['explanation'])}")
@@ -136,5 +187,13 @@ def random_question(category):
 
 
 while True:
-    random_question(qset)
-    selected_q+=1
+    if not spending_time:
+        random_question(qset)
+    
+    while spending_time:
+        if time_using>0:
+            time.sleep(1)
+            time_using-=1
+        else:
+            focus("Visual Studio Code")
+            spending_time=False
