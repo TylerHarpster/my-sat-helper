@@ -33,7 +33,8 @@ total=0
 
 def format(string):
 
-    keywords=["less","greater","not","sum","only","area","equation","value"]
+    underline_keywords=["less","greater","not","sum","only","area","equation","value","value(s)","distributive property"]
+    replace_keywords=[["frac",""],["}{","}/{"]]
             
     newstring=""
     i = 0
@@ -58,7 +59,7 @@ def format(string):
         finally: ""
         
         try:
-            for keyword in keywords:
+            for keyword in underline_keywords:
 
                 if string[i:i+len(keyword)].lower()==keyword:
                     current_char=color.UNDERLINE+current_char
@@ -67,12 +68,12 @@ def format(string):
         finally: ""
 
         try:
-            if string[i:i+4]=="frac":
-                current_char=""
-                i+=3
-            if string[i:i+2]=="}{":
-                current_char="}/{"
-                i+=2
+            for keyword_pair in replace_keywords:
+
+                if string[i:i+len(keyword_pair[0])].lower()==keyword_pair[0]:
+                    current_char=keyword_pair[1]
+                    i+=len(keyword_pair[0])-1
+                
         finally: ""
     
 
@@ -81,7 +82,7 @@ def format(string):
 
         i+=1
     
-    return newstring
+    return newstring+style.END
 
 with open("questions.json","r",encoding="utf-8") as f:
     for question in ijson.items(f,qset+".item"):
@@ -124,7 +125,7 @@ def random_question(category):
                     streak+=1
                     
                 
-                print(f"{correct_str} {question['question']['explanation']}")
+                print(f"{correct_str} {format(question['question']['explanation'])}")
                 if not correct: print(f"{color.YELLOW} The correct answer was {color.BOLD}{question['question']['correct_answer']}{color.END}")
 
                 if not correct:
