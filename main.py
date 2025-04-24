@@ -28,7 +28,7 @@ class style:
 #         print(f"Domain: {question['domain']}")
 #         print(f"Question: {question['question']['question']}\n")
 
-qset="english"
+qset="math"
 
 
 
@@ -39,8 +39,6 @@ def focus(window_name):
 
     vscode.restore()
     vscode.activate()
-
-total=0
 
 def format(string):
 
@@ -95,9 +93,14 @@ def format(string):
     
     return newstring+style.END
 
+mathtotal=0
+engtotal=0
 with open("questions.json","r",encoding="utf-8") as f:
-    for question in ijson.items(f,qset+".item"):
-        total+=1
+    for question in ijson.items(f,"math"+".item"):
+        mathtotal+=1
+with open("questions.json","r",encoding="utf-8") as f:
+    for question in ijson.items(f,"english"+".item"):
+        engtotal+=1
 
 streak=0
 time_budget=1
@@ -113,8 +116,13 @@ def random_question(category,*args):
     global spending_time
     global time_using
     global globaldiff
+    global qset
 
     diff="any"
+    total=0
+
+    if category=="english": total=engtotal
+    if category=="math": total=mathtotal
 
     if len(args)==1:
         diff=args[0]
@@ -191,6 +199,12 @@ def random_question(category,*args):
                                 if user_answer.lower()=="any":
                                     print(f"Difficulty is now {color.BLUE + style.BOLD} Any. {style.END}")
                                     globaldiff="any"
+                                if user_answer.lower()=="english":
+                                    print(f"Subject is now {style.BOLD} English. {style.END}")
+                                    qset="english"
+                                if user_answer.lower()=="math":
+                                    print(f"Subject is now {style.BOLD} Math. {style.END}")
+                                    qset="math"
                             except ValueError: 
                                 print(color.RED+style.BOLD+"Invalid parameter!"+style.END)
 
