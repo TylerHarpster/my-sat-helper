@@ -28,7 +28,7 @@ class style:
 #         print(f"Domain: {question['domain']}")
 #         print(f"Question: {question['question']['question']}\n")
 
-qset="math"
+qset="english"
 
 
 
@@ -103,14 +103,21 @@ streak=0
 time_budget=1
 spending_time=False
 time_using=0
+globaldiff="any"
 
 
-def random_question(category):
+def random_question(category,*args):
 
     global streak
     global time_budget
     global spending_time
     global time_using
+    global globaldiff
+
+    diff="any"
+
+    if len(args)==1:
+        diff=args[0]
 
     selected_q=random.randint(0,total)
     current_q=0
@@ -119,11 +126,24 @@ def random_question(category):
 
         for question in ijson.items(f,category+".item"):
             if(current_q==selected_q):
-                print()
+                
+                if diff!="any" and question['difficulty']!=diff:
+                    return 0
 
-                print(f"\nQuestion {selected_q}: {format(question['question']['question'])}")
+                difficulty=question['difficulty']
+                print(style.BOLD)
+                if difficulty=="Easy": print(color.GREEN)
+                if difficulty=="Medium": print(color.YELLOW)
+                if difficulty=="Hard": print(color.RED)
+                print(f"\nDifficulty: {difficulty}"+style.END)
+
+
+                print(f"Question {selected_q}: {format(question['question']['question'])}")
                 if streak>=3:
                     print(f"{color.YELLOW}{color.BOLD}You have a {color.RED}{streak}{color.YELLOW} answer streak!{color.END}")
+                if category=="english":
+                    print(f"\n{question['question']['paragraph']}")
+
                 print(f"\n{color.RED}A: {format(question['question']['choices']['A'])}")
                 print(f"{color.BLUE}B: {format(question['question']['choices']['B'])}")
                 print(f"{color.YELLOW}C: {format(question['question']['choices']['C'])}")
@@ -156,6 +176,24 @@ def random_question(category):
                                     return 0
                             except ValueError: 
                                 print(color.RED+style.BOLD+"Invalid parameter!"+style.END)
+                        elif user_answer[0:6]=="gimmie":
+                            try:
+                                user_answer=user_answer[7:len(user_answer)]
+                                if user_answer.lower()=="easy":
+                                    print(f"Difficulty is now {color.GREEN+style.BOLD} Easy. {style.END}")
+                                    globaldiff="Easy"
+                                if user_answer.lower()=="medium":
+                                    print(f"Difficulty is now {color.YELLOW + style.BOLD} Medium. {style.END}")
+                                    globaldiff="Medium"
+                                if user_answer.lower()=="hard":
+                                    print(f"Difficulty is now {color.RED + style.BOLD} Hard. {style.END}")
+                                    globaldiff="Hard"
+                                if user_answer.lower()=="any":
+                                    print(f"Difficulty is now {color.BLUE + style.BOLD} Any. {style.END}")
+                                    globaldiff="any"
+                            except ValueError: 
+                                print(color.RED+style.BOLD+"Invalid parameter!"+style.END)
+
                         else:
                             print(color.RED+style.BOLD+"Invalid answer!"+style.END)
 
@@ -188,7 +226,7 @@ def random_question(category):
 
 while True:
     if not spending_time:
-        random_question(qset)
+        random_question(qset,globaldiff)
     
     while spending_time:
         if time_using>0:
